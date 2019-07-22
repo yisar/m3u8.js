@@ -1,2 +1,2 @@
-# hls.wasm
-HLS client using WebAssembly and Media Source Extension
+# m3u8.js
+m3u8 client using WebAssembly and Media Source Extension
