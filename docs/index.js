@@ -22,7 +22,7 @@ class M3U8 {
     const sourceBuffer = this.mse.addSourceBuffer(this.mime)
     fetchAB(this.src, buf => {
       sourceBuffer.addEventListener('updateend', () => {
-        mediaSource.endOfStream()
+        this.mse.endOfStream()
         this.video.play()
       })
       sourceBuffer.appendBuffer(buf)
