@@ -20,7 +20,6 @@ class M3U8 {
     this.mse.addEventListener('sourceopen', this.sourceOpen.bind(this))
   }
   sourceOpen () {
-    console.log(this)
     const sourceBuffer = this.mse.addSourceBuffer(this.mime)
     fetchAB(this.src, buf => {
       sourceBuffer.addEventListener('updateend', () => {
