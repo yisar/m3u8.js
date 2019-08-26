@@ -6,6 +6,7 @@ m3u8 client using WebAssembly and Media Source Extension
 
 ```js
 import M3U8 from 'm3u8.js'
+
 const video = document.querySelector('video')
 if (M3U8.isSupported()) {
   const m3u8 = new M3U8()
