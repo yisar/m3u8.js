@@ -12,7 +12,6 @@ if (M3U8.isSupported()) {
   const m3u8 = new M3U8()
   m3u8.load('./001.m3u8')
   m3u8.attach(video)
-  m3u8.load()
   m3u8.play()
 }
 ```

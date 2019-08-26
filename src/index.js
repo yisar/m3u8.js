@@ -7,7 +7,6 @@ class M3U8 {
     this.mse = new MediaSource()
   }
   load (src, type) {
-    console.log(111)
     this.src = src
     this.type = type
     this.mime = mimeCodec[type]
