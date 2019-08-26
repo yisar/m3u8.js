@@ -7,6 +7,7 @@ class M3U8 {
     this.mse = new MediaSource()
   }
   load (src, type) {
+    console.log(111)
     this.src = src
     this.type = type
     this.mime = mimeCodec[type]
@@ -16,9 +17,10 @@ class M3U8 {
     video.src = URL.createObjectURL(this.mse)
   }
   play () {
-    mediaSource.addEventListener('sourceopen', sourceOpen)
+    this.mse.addEventListener('sourceopen', this.sourceOpen.bind(this))
   }
   sourceOpen () {
+    console.log(this)
     const sourceBuffer = this.mse.addSourceBuffer(this.mime)
     fetchAB(this.src, buf => {
       sourceBuffer.addEventListener('updateend', () => {
@@ -29,10 +31,7 @@ class M3U8 {
     })
   }
   static isSupported () {
-    return (
-      'MediaSource' in window &&
-      MediaSource.isTypeSupported(mimeCodec[this.type])
-    )
+    return 'MediaSource' in window
   }
 }
 
