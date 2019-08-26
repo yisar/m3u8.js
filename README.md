@@ -10,8 +10,8 @@ import M3U8 from 'm3u8.js'
 if (M3U8.isSupported()) {
   const m3u8 = new M3U8({
     node: document.querySelector('video'),
-    url: './001.mp4',
-    type: 'mp4',
+    url: './001.m3u8',
+    type: 'm3u8',
   })
 }
 ```
