@@ -1,25 +1,12 @@
 import { NALU } from './lib/nalu.js'
-import { H264Parser } from './parser/h264'
-import Remuxer from '../remux/index'
+
 
 export class Player {
   constructor(options) {
-    let defaults = {
-      node: '',
-      fps: 30,
-      flushTime: 1500
-    }
-    this.options = Object.assign({}, defaults, options)
-    this.frameLength = 1000 / this.options.fps
+    this.frameLength = 1000 / 30
     this.node = this.options.node
 
     this.setupMSE()
-
-    this.remuxer = new Remuxer()
-    this.remuxer.addTrack()
-    this.mseReady = false
-    this.remuxer.on('buffer', this.onBuffer.bind(this))
-    this.remuxer.on('ready', this.createBuffer.bind(this))
 
     this.startTimer()
   }
@@ -38,20 +25,6 @@ export class Player {
     if (this.bufferMap && this.bufferMap[data.type]) {
       this.bufferMap[data.type].feed(data.payload)
     }
-  }
-
-  feed(data) {
-    let nalus,
-      chunks = []
-
-    if (data.video) {
-      nalus = H264Parser.extractNALu(data.video)
-      if (nalus.length) {
-        chunks = this.getFrames(nalus)
-      }
-    }
-
-    this.remuxer.remux(chunks)
   }
 
   getFrames(nalus) {
