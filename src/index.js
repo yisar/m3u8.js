@@ -1,44 +1,89 @@
-const mimeCodec = {
-  mp4: 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"'
-}
+import { NALU } from './lib/nalu.js'
+import { H264Parser } from './parser/h264'
+import Remuxer from './remux/index'
 
-class M3U8 {
-  constructor () {
-    this.mse = new MediaSource()
-  }
-  load (src, type) {
-    this.src = src
-    this.type = type
-    this.mime = mimeCodec[type]
-  }
-  attach (video) {
-    this.video = video
-    video.src = URL.createObjectURL(this.mse)
-  }
-  play () {
-    this.mse.addEventListener('sourceopen', this.sourceOpen.bind(this))
-  }
-  sourceOpen () {
-    const sourceBuffer = this.mse.addSourceBuffer(this.mime)
-    fetchAB(this.src, buf => {
-      sourceBuffer.addEventListener('updateend', () => {
-        mediaSource.endOfStream()
-        this.video.play()
-      })
-      sourceBuffer.appendBuffer(buf)
-    })
-  }
-  static isSupported () {
-    return 'MediaSource' in window
-  }
-}
+export class M3U8 {
+  constructor(options) {
+    let defaults = {
+      node: '',
+      fps: 30,
+      flushTime: 1500
+    }
+    this.options = Object.assign({}, defaults, options)
+    this.frameLength = 1000 / this.options.fps
+    this.node = this.options.node
 
-function fetchAB (url, cb) {
-  var xhr = new XMLHttpRequest()
-  xhr.open('get', url)
-  xhr.responseType = 'arraybuffer'
-  xhr.onload = function () {
-    cb(xhr.response)
+    this.setupMSE()
+
+    this.remuxer = new Remuxer(this.options.clearBuffer)
+    this.remuxer.addTrack()
+    this.mseReady = false
+    this.remuxer.on('buffer', this.onBuffer.bind(this))
+    this.remuxer.on('ready', this.createBuffer.bind(this))
+
+    this.startTimer()
   }
-  xhr.send()
+
+  createBuffer() {
+    this.bufferMap = {}
+    for (const type in this.remuxer.tracks) {
+      let track = this.remuxController.tracks[type]
+      let sb = this.mediaSource.addSourceBuffer(`${type}/mp4; codecs="${track.mp4track.codec}"`)
+      let buffer = new Buffer(sb)
+      this.bufferMap[type] = buffer
+    }
+  }
+
+  onBuffer(data) {
+    if (this.bufferMap && this.bufferMap[data.type]) {
+      this.bufferMap[data.type].feed(data.payload)
+    }
+  }
+
+  feed(data) {
+    let nalus,
+      chunks = []
+
+    if (data.video) {
+      nalus = H264Parser.extractNALu(data.video)
+      if (nalus.length) {
+        chunks = this.getFrames(nalus)
+      }
+    }
+
+    this.remuxer.remux(chunks)
+  }
+
+  getFrames(nalus) {
+    let nalu,
+      units = [],
+      samples = []
+
+    for (let i = 0; i < nalus.length; i++) {
+      nalu = new nalu(item)
+      units.push(nalu)
+      if (naluObj.type() === NALU.IDR || naluObj.type() === NALU.NDR) {
+        samples.push({ units })
+        units = []
+      }
+    }
+
+    return samples.map(item => (item.duration = this.options.frameLength))
+  }
+
+  setupMSE() {
+    this.mediaSource = new MediaSource()
+    this.node.src = URL.createObjectURL(this.mediaSource)
+    this.mediaSource.addEventListener('sourceopen', () => (this.mseReady = true))
+    this.mediaSource.addEventListener('sourceclose', () => (this.mseReady = false))
+  }
+
+  startTimer() {
+    this.timer = setInterval(() => {
+      if (this.bufferMap) {
+        this.releaseBuffer()
+        this.clearBuffer()
+      }
+    }, this.options.flushTime)
+  }
 }
