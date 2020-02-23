@@ -4,14 +4,14 @@ const KEY_PREFIX = '#EXT-X-'
 const URL_PERFIX = /(.+)\/(.+)/
 let prefix = ''
 
-export function decode(url) {
+export function getSegments(url) {
   prefix = url.match(URL_PERFIX)[1]
   return fetch(url)
     .then(res => res.text())
-    .then(data => new Parser(data))
+    .then(data => new Parser(data).segments)
 }
 
-class Parser {
+export class Parser {
   constructor(playlist) {
     this.segments = []
     this.info = []
@@ -43,7 +43,7 @@ class Parser {
 }
 
 function parseParams(line) {
-  let pairs = filter(line.split(NON_QUOTED_COMMA))
+  let pairs = line.split(NON_QUOTED_COMMA).map(l => trim(l))
   let attrs = {}
 
   let i
@@ -85,20 +85,4 @@ function startsWith(s, prefix) {
 
 function trim(str) {
   return typeof str.trim === 'function' ? str.trim() : str.replace(/^\s*|\s*$/g, '')
-}
-
-function filter(arr) {
-  let length = 0
-
-  for (let i = 0; i < arr.length; ++i) {
-    arr[length] = trim(arr[i])
-
-    if (arr[length]) {
-      length += 1
-    }
-  }
-
-  arr.length = length
-
-  return arr
 }

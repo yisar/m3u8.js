@@ -2,7 +2,7 @@ import { NALU } from './lib/nalu.js'
 import { H264Parser } from './parser/h264'
 import Remuxer from './remux/index'
 
-export class M3U8 {
+export class Player {
   constructor(options) {
     let defaults = {
       node: '',
@@ -15,7 +15,7 @@ export class M3U8 {
 
     this.setupMSE()
 
-    this.remuxer = new Remuxer(this.options.clearBuffer)
+    this.remuxer = new Remuxer()
     this.remuxer.addTrack()
     this.mseReady = false
     this.remuxer.on('buffer', this.onBuffer.bind(this))

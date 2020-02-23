@@ -123,7 +123,8 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.decode = decode;
+exports.getSegments = getSegments;
+exports.Parser = void 0;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -137,12 +138,12 @@ var KEY_PREFIX = '#EXT-X-';
 var URL_PERFIX = /(.+)\/(.+)/;
 var prefix = '';
 
-function decode(url) {
+function getSegments(url) {
   prefix = url.match(URL_PERFIX)[1];
   return fetch(url).then(function (res) {
     return res.text();
   }).then(function (data) {
-    return new Parser(data);
+    return new Parser(data).segments;
   });
 }
 
@@ -184,8 +185,12 @@ function () {
   return Parser;
 }();
 
+exports.Parser = Parser;
+
 function parseParams(line) {
-  var pairs = filter(line.split(NON_QUOTED_COMMA));
+  var pairs = line.split(NON_QUOTED_COMMA).map(function (l) {
+    return trim(l);
+  });
   var attrs = {};
   var i;
   var kvList;
@@ -227,27 +232,12 @@ function startsWith(s, prefix) {
 function trim(str) {
   return typeof str.trim === 'function' ? str.trim() : str.replace(/^\s*|\s*$/g, '');
 }
-
-function filter(arr) {
-  var length = 0;
-
-  for (var i = 0; i < arr.length; ++i) {
-    arr[length] = trim(arr[i]);
-
-    if (arr[length]) {
-      length += 1;
-    }
-  }
-
-  arr.length = length;
-  return arr;
-}
 },{}],"parser.js":[function(require,module,exports) {
 "use strict";
 
 var _m3u = require("../src/parser/m3u8");
 
-var p = (0, _m3u.decode)('https://rescdn.yishihui.com/longvideo/transcode/video/vpc/20200221/12255802foEBblL7Fey4rIHoNx-safe1582272600.m3u8');
+var p = (0, _m3u.getSegments)('https://rescdn.yishihui.com/longvideo/transcode/video/vpc/20200221/12255802foEBblL7Fey4rIHoNx-safe1582272600.m3u8');
 p.then(function (str) {
   return console.log(str);
 });
