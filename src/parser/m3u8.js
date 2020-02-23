@@ -1,43 +1,45 @@
 const NON_QUOTED_COMMA = /,(?=(?:[^"]|"[^"]*")*$)/
 const KV_SPLITTER = /="?([^"]*)/
 const KEY_PREFIX = '#EXT-X-'
+const URL_PERFIX = /(.+)\/(.+)/
 let prefix = ''
 
 export function decode(url) {
-  prefix = url.match(/(.+)\/(.+)/)
+  prefix = url.match(URL_PERFIX)[1]
   return fetch(url)
     .then(res => res.text())
-    .then(data => encode(data))
+    .then(data => new Parser(data))
 }
 
-export function encode(playlist) {
-  let lines = playlist.toString().split('\n')
+class Parser {
+  constructor(playlist) {
+    this.segments = []
+    this.info = []
 
-  if (!lines.length || !startsWith(lines[0], '#EXTM3U')) {
-    throw new Error('Invalid m3u playlist')
-  }
+    let lines = playlist.toString().split('\n')
 
-  const segments = [],
-    options = []
+    if (!lines.length || !startsWith(lines[0], '#EXTM3U')) {
+      throw new Error('Invalid m3u playlist')
+    }
 
-  for (let i = 0; i < lines.length; i++) {
-    let line = trim(lines[i])
-    if (!startsWith(line, '#')) {
-      segments.push(prefix + '/' + line)
-    } else {
-      options.push(transform(line))
+    for (let i = 0; i < lines.length; i++) {
+      let line = trim(lines[i])
+      if (!startsWith(line, '#')) {
+        this.segments.push(prefix + '/' + line)
+      } else {
+        this.info.push(this.transform(line))
+      }
     }
   }
-  return segments
-}
 
-function transform(line) {
-  let splitted = split(line)
-  let obj = {}
+  transform(line) {
+    let splitted = split(line)
+    let obj = {}
 
-  obj[normalize(splitted[0])] = splitted.length > 1 ? parseParams(splitted[1]) : void 0
+    obj[normalize(splitted[0])] = splitted.length > 1 ? parseParams(splitted[1]) : void 0
 
-  return obj
+    return obj
+  }
 }
 
 function parseParams(line) {
