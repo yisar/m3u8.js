@@ -1,46 +1,39 @@
 const NON_QUOTED_COMMA = /,(?=(?:[^"]|"[^"]*")*$)/
 const KV_SPLITTER = /="?([^"]*)/
 const KEY_PREFIX = '#EXT-X-'
+let prefix = ''
 
 export function decode(url) {
-  fetch(url)
+  prefix = url.match(/(.+)\/(.+)/)
+  return fetch(url)
     .then(res => res.text())
-    .then(data => {
-      encode(data)
-    })
+    .then(data => encode(data))
 }
 
 export function encode(playlist) {
-  var lines = playlist.toString().split('\n')
+  let lines = playlist.toString().split('\n')
 
   if (!lines.length || !startsWith(lines[0], '#EXTM3U')) {
     throw new Error('Invalid m3u playlist')
   }
 
-  lines = lines.slice(1)
+  const segments = [],
+    options = []
 
-  var line
-  var i
-  var length = 0
-
-  for (i = 0; i < lines.length; ++i) {
-    line = trim(lines[i])
-
-    lines[length] = startsWith(line, '#') ? transform(line) : line
-
-    if (lines[length]) {
-      ++length
+  for (let i = 0; i < lines.length; i++) {
+    let line = trim(lines[i])
+    if (!startsWith(line, '#')) {
+      segments.push(prefix + '/' + line)
+    } else {
+      options.push(transform(line))
     }
   }
-
-  lines.length = length
-
-  return lines
+  return segments
 }
 
 function transform(line) {
-  var splitted = split(line)
-  var obj = {}
+  let splitted = split(line)
+  let obj = {}
 
   obj[normalize(splitted[0])] = splitted.length > 1 ? parseParams(splitted[1]) : void 0
 
@@ -48,11 +41,11 @@ function transform(line) {
 }
 
 function parseParams(line) {
-  var pairs = filter(line.split(NON_QUOTED_COMMA))
-  var attrs = {}
+  let pairs = filter(line.split(NON_QUOTED_COMMA))
+  let attrs = {}
 
-  var i
-  var kvList
+  let i
+  let kvList
 
   for (i = 0; i < pairs.length; ++i) {
     kvList = pairs[i].split(KV_SPLITTER)
@@ -72,7 +65,7 @@ function normalize(key) {
 }
 
 function split(line) {
-  var pos = line.indexOf(':')
+  let pos = line.indexOf(':')
   return pos > 0 ? [line.slice(0, pos), line.slice(pos + 1)] : [line]
 }
 
@@ -93,9 +86,9 @@ function trim(str) {
 }
 
 function filter(arr) {
-  var length = 0
+  let length = 0
 
-  for (var i = 0; i < arr.length; ++i) {
+  for (let i = 0; i < arr.length; ++i) {
     arr[length] = trim(arr[i])
 
     if (arr[length]) {
