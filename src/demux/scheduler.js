@@ -1,5 +1,10 @@
 export class Scheduler {
-  constructor(segments) {
-    this.segments = segments
+  constructor(url, cb) {
+    this.url = url
+    fetch(this.url)
+      .then(res => res.arrayBuffer())
+      .then(data => {
+        cb(data)
+      })
   }
 }
