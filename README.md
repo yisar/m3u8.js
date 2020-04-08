@@ -4,4 +4,4 @@ JavaScript M3U8 client using Media Source Extension
 
 ### License
 
-MIT ©yisar inspired by hls.js
+MIT ©yisar inspired by [xgplayer-hls](https://github.com/bytedance/xgplayer)
